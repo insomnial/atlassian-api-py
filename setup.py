@@ -6,6 +6,6 @@ setup(
    description='Wrapper for Jira API',
    author='Kurt Anderson',
    author_email='akurt6805@protonmail.com',
-   packages=['app'],  #same as name
+   packages=['atlassian_api_py'],  #same as name
    install_requires=['certifi', 'charset-normalizer', 'idna', 'requests', 'urllib3'], #external packages as dependencies
 )
