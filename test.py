@@ -35,12 +35,12 @@ def main(args = None, opts = None) -> None:
     workspaceId = ''
 
     print("==== CREDENTIALS ====")
-    print(f"          email: {email}")
-    print(f"            key: {key[0:5]}...")
-    print(f"       root url: {rootUrl}")
+    print(f"       email: {email}")
+    print(f"         key: {key[0:5]}...")
+    print(f"    root url: {rootUrl}")
     if '-workspaceid' in opts:
         workspaceId = args[opts.index('-workspaceid')]
-        print(f"workspace ID is: {workspaceId}")
+        print(f"workspace ID: {workspaceId}")
     else:
         print(f"Workspace not provided, will be stored dynamically")
 
@@ -55,7 +55,12 @@ def main(args = None, opts = None) -> None:
 
     print()
 
+    print(f"Initialize API controller")
     controllerApi = conApi.ApiController(aToken=token, aRootUrl=rootUrl, aWorkspace=workspaceId)
+
+    print()
+
+    print(f"Request all projects")
     allProjectsRequest = controllerApi.get_all_projects()
     print(f"Total projects found: {len(allProjectsRequest)}")
 

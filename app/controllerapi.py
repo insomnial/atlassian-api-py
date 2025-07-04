@@ -202,6 +202,36 @@ class ApiController():
     #     )
 
 
+    ## Issue search
+
+    # Search for issues using JQL enhanced search (GET)
+    # https://developer.atlassian.com/cloud/jira/platform/rest/v3/api-group-issue-search/#api-rest-api-3-search-jql-get
+    # return
+    #   key ID of returned issues
+    def search_jql(self,
+                   aJql : str,
+                   nextPageToken = None,
+                   maxResults = 50,
+                   fields = 'id',
+                   expand = 'names'
+                   ):
+        endpointUrl = f"{self._ROOTURL}/rest/api/3/search/jql"
+        # query = {
+        #     'jql': 'project = HSP',
+        #     'nextPageToken': '<string>',
+        #     'maxResults': '{maxResults}',
+        #     'fields': '{fields}',
+        #     'expand': '<string>',
+        #     'reconcileIssues': '{reconcileIssues}'
+        # }
+        response = self.__callApi(
+            mode='GET',
+            url=endpointUrl,
+            query=aJql
+        )
+        return json.loads(response.text)
+    
+
     # Get list of projects the current user has access to.
     # endpoint
     #   rest/api/3/project
