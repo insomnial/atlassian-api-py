@@ -1,4 +1,0 @@
-export ATLASSIAN_EMAIL=''
-export TOKEN=''
-export WORKSPACE_ID=''
-export ROOT_URL=''
