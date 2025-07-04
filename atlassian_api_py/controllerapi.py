@@ -201,8 +201,26 @@ class ApiController():
     #         payload=fields
     #     )
 
+    ##
+    ## Filters
+    ##
 
+    # Returns a filter.
+    # https://developer.atlassian.com/cloud/jira/platform/rest/v3/api-group-filters/#api-rest-api-3-filter-id-get
+    # return
+    #   
+    def get_filter(self, filterId):
+        endpointUrl = f"{self._ROOTURL}//rest/api/3/filter/{filterId}"
+        response = self.__callApi(
+            mode='GET',
+            url=endpointUrl
+        )
+        return json.loads(response.text)
+
+
+    ##
     ## Issue search
+    ##
 
     # Search for issues using JQL enhanced search (GET)
     # https://developer.atlassian.com/cloud/jira/platform/rest/v3/api-group-issue-search/#api-rest-api-3-search-jql-get
