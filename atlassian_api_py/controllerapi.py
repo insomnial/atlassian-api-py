@@ -234,18 +234,18 @@ class ApiController():
                    expand = 'names'
                    ):
         endpointUrl = f"{self._ROOTURL}/rest/api/3/search/jql"
-        # query = {
-        #     'jql': 'project = HSP',
-        #     'nextPageToken': '<string>',
-        #     'maxResults': '{maxResults}',
-        #     'fields': '{fields}',
-        #     'expand': '<string>',
-        #     'reconcileIssues': '{reconcileIssues}'
-        # }
+        query = {
+            'jql': aJql,
+            'nextPageToken': nextPageToken,
+            'maxResults': f'{maxResults}',
+            'fields': f'{fields}',
+            'expand': f'{expand}'
+            # 'reconcileIssues': '{reconcileIssues}'
+        }
         response = self.__callApi(
             mode='GET',
             url=endpointUrl,
-            query=aJql
+            query=query
         )
         return json.loads(response.text)
     
@@ -261,7 +261,43 @@ class ApiController():
         )
         # just return the response, API data is not needed
         return json.loads(response.text)
+    
 
+    ##
+    ## Issues
+    ##
+
+    # Returns the details for an issue.
+    # https://developer.atlassian.com/cloud/jira/platform/rest/v3/api-group-issues/#api-rest-api-3-issue-issueidorkey-get
+    # endpoint
+    #   rest/api/3/issue/{issueIdOrKey}
+    def get_issue(self, issueIdOrKey, fieldsByKeys = False, expand = 'names'):
+        endpointUrl = f"{self._ROOTURL}/rest/api/3/issue/{issueIdOrKey}"
+        response = self.__callApi(
+            mode='GET',
+            url=endpointUrl,
+            query={
+                'fieldsByKeys' : fieldsByKeys,
+                'expand' : expand
+            }
+        )
+        return json.loads(response.text)
+    
+    # Returns a paginated list of all changelogs for an issue sorted by date, starting from the oldest.
+    # https://developer.atlassian.com/cloud/jira/platform/rest/v3/api-group-issues/#api-rest-api-3-issue-issueidorkey-changelog-get
+    # endpoint
+    #   rest/api/3/issue/{issueIdOrKey}/changelog
+    def get_changelogs(self, issueIdOrKey, startAt = 0, maxResults = 100):
+        endpointUrl = f"{self._ROOTURL}/rest/api/3/issue/{issueIdOrKey}/changelog"
+        response = self.__callApi(
+            mode='GET',
+            url=endpointUrl,
+            query={
+                'startAt' : startAt,
+                'maxResults' : maxResults
+            }
+        )
+        return json.loads(response.text)
 
 
 if __name__ == "__main__":

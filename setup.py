@@ -2,7 +2,7 @@ from setuptools import setup
 
 setup(
    name='atlassian_api_py',
-   version='0.2',
+   version='0.3',
    description='Wrapper for Jira API',
    author='Kurt Anderson',
    author_email='akurt6805@protonmail.com',
