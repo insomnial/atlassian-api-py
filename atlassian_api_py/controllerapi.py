@@ -72,6 +72,15 @@ class ApiController():
         return w_id_json.json()['values'][0]['workspaceId']
 
 
+    # set the project for this instance of controllerapi and populate
+    # - issue types
+    # - request types
+    def set_project(self, projectId = None, projectKey = None):
+        if projectId is not None:
+            self.PROJECT_ID = projectId
+        if projectKey is not None:
+            self.PROJECT_KEY = projectKey
+
     ###########################################################################
     #
     # ASSETS
@@ -131,59 +140,60 @@ class ApiController():
     # Jira/JSM
     #
     ###########################################################################
-    # def __search_existing_ticket(self, summary, requestType):
-    #     url = f'{self.configDict[ApiConfig.BASE]}/rest/api/3/search'
-    #     query = {
-    #         'jql': f'project = {self.configDict[ApiConfig.PROJECT_ID]} and ' \
-    #             f'"Status Category[Dropdown]" != "Done" and ' \
-    #             f'"Request Type" = "{requestType}" and ' \
-    #             f'summary ~ "{summary}"',
-    #         'expand': 'false'
-    #     }
-    #     return self.__callApi(mode='GET', url=url, query=query)
+    def __search_existing_ticket(self, projectId, summary, requestType):
+        url = f'{self._ROOTURL}/rest/api/3/search'
+        query = {
+            'jql': f'project = {projectId} and ' \
+                f'"Status Category[Dropdown]" != "Done" and ' \
+                f'"Request Type" = "{requestType}" and ' \
+                f'summary ~ "{summary}"',
+            'expand': 'false'
+        }
+        return self.__callApi(mode='GET', url=url, query=query)
 
 
-    # def __create_ticket(self, summary, description, computers, requestType):
-    #     url = f'{self.configDict[ApiConfig.BASE]}/rest/api/3/issue'
-    #     payload = json.dumps( {
-    #         "fields": {
-    #             "summary": summary,
-    #             "description": description,
-    #             "issuetype": {
-    #                 "id": self.configDict[ApiConfig.ISSUE_TYPE_ID]
-    #             },
-    #             "customfield_10010": requestType,
-    #             "labels": [
-    #                 "jsm-assets"
-    #             ],
-    #             "priority": {
-    #                 "id": "3" # medium
-    #             },
-    #             "project": {
-    #                 "id": self.configDict[ApiConfig.PROJECT_ID]
-    #             },
-    #             "customfield_10170": computers
-    #         }
-    #     } )
-    #     # check for existing ticket before creating a new one
-    #     existingResponse = self.__search_existing_ticket(summary=summary, requestType=requestType)
-    #     if (json.loads(existingResponse.text))['total'] > 0:
-    #         # ticket exists
-    #         # TODO make this work so we only respond with these three keys
-    #         existingResponseJson = (json.loads(existingResponse.text))['issues'][0]
-    #         temp = {
-    #             "status_code": 200,
-    #             "text": '{"id": "%(id)s", "key": "%(key)s", "self": "%(self)s"}' % {'id': existingResponseJson['id'], 'key': existingResponseJson['key'], 'self': existingResponseJson['self']}
-    #             }
-    #         temp = SimpleNamespace(**temp)
-    #         return temp
-    #     else:
-    #         # ticket does not exist, create new ticket
-    #         return self.__callApi(mode='POST', url=url, payload=payload)
+    def __create_ticket(self, summary, description, computers, requestType):
+        url = f'{self._ROOTURL}/rest/api/3/issue'
+        payload = json.dumps( {
+            "fields": {
+                "summary": summary,
+                "description": description,
+                "issuetype": {
+                    "id": self.configDict[ApiConfig.ISSUE_TYPE_ID]
+                },
+                "customfield_10010": requestType,
+                "labels": [
+                    "jsm-assets"
+                ],
+                "priority": {
+                    "id": "3" # medium
+                },
+                "project": {
+                    "id": self.configDict[ApiConfig.PROJECT_ID]
+                },
+                "customfield_10170": computers
+            }
+        } )
+        # check for existing ticket before creating a new one
+        existingResponse = self.__search_existing_ticket(summary=summary, requestType=requestType)
+        if (json.loads(existingResponse.text))['total'] > 0:
+            # ticket exists
+            # TODO make this work so we only respond with these three keys
+            existingResponseJson = (json.loads(existingResponse.text))['issues'][0]
+            temp = {
+                "status_code": 200,
+                "text": '{"id": "%(id)s", "key": "%(key)s", "self": "%(self)s"}' % {'id': existingResponseJson['id'], 'key': existingResponseJson['key'], 'self': existingResponseJson['self']}
+                }
+            temp = SimpleNamespace(**temp)
+            return temp
+        else:
+            # ticket does not exist, create new ticket
+            return self.__callApi(mode='POST', url=url, payload=payload)
 
 
-    # def create_single_ticket(self, summary, description, computers):
-    #     return self.__create_ticket(summary, description, computers, self.configDict[ApiConfig.REQUEST_TYPE_VETTING])
+    # create a single ticket in the project already set
+    def create_single_ticket(self, summary, description):
+        return self.__create_ticket(summary, description, self.configDict[ApiConfig.REQUEST_TYPE_VETTING])
 
 
     # # jsonBlobs : dictionary with two entries, summary & description

@@ -12,6 +12,59 @@ USAGE = f"Usage: python {sys.argv[0]} [ --help | -key -rooturl -workspaceid ]"
 # workspace_id = os.getenv('WORKSPACE_ID')
 # key = base64.b64encode(f'{uname}:{tok}'.encode()).decode()
 
+# Search using filter sql property
+def _search_using_filter(controllerApi) -> list:
+    getFilter = controllerApi.get_filter(10209)
+    filterSql = getFilter['jql']
+    isLast = False
+    nextPageToken = ''
+    keys = []
+    while not isLast:
+        search = controllerApi.search_jql(aJql=filterSql, nextPageToken=nextPageToken)
+        if 'isLast' in search: isLast = search['isLast']
+        if 'nextPageToken' in search: nextPageToken = search['nextPageToken']
+        issues = search['issues']
+        for item in issues:
+            key = item['key']
+            keys.append(key)
+        print(len(keys))
+        pass
+    print()
+    return keys
+
+
+def _search_for_specific_issues(controllerApi, keys: list) -> None:
+    for key in keys:
+        getIssueDetails = controllerApi.get_issue(issueIdOrKey=key, fieldsByKeys=True)
+        pass
+        isLast = False
+        startAt = 0
+        changelogs = []
+        while not isLast:
+            getChangelog = controllerApi.get_changelogs(key)
+            isLast = getChangelog['isLast']
+            startAt = startAt + getChangelog['total']
+            changelogs = changelogs + getChangelog['values']
+            pass
+
+    
+def _create_issue(controllerApi) -> str:
+    issue = {
+        "fields": {
+            "project": {
+                "key": "TEST"
+            },
+            "summary": "Test issue created using atlassian-api-py",
+            "description": "This is a test issue created using the atlassian-api-py library.",
+            "issuetype": {
+                "name": "Task"
+            }
+        }
+    }
+    newIssue = controllerApi.create_issue(issue)
+    print(f"New issue created with key: {newIssue['key']}")
+    return newIssue['key']
+
 
 def main(args = None, opts = None) -> None:
     print("Welcome to `atlassian-api-py")
@@ -61,41 +114,14 @@ def main(args = None, opts = None) -> None:
     # print(f"Total projects found: {len(allProjectsRequest)}")
     # print()
 
-    print("Search using filter sql property")
-    getFilter = controllerApi.get_filter(10209)
-    filterSql = getFilter['jql']
-    isLast = False
-    nextPageToken = ''
-    keys = []
-    while not isLast:
-        search = controllerApi.search_jql(aJql=filterSql, nextPageToken=nextPageToken)
-        if 'isLast' in search: isLast = search['isLast']
-        if 'nextPageToken' in search: nextPageToken = search['nextPageToken']
-        issues = search['issues']
-        for item in issues:
-            key = item['key']
-            keys.append(key)
-        print(len(keys))
-        pass
-    print()
+    print(f"Search using a filter")
+    keys = _search_using_filter(controllerApi)
 
     print("Seach for specific issues")
-    for key in keys:
-        getIssueDetails = controllerApi.get_issue(issueIdOrKey=key, fieldsByKeys=True)
-        pass
-        isLast = False
-        startAt = 0
-        changelogs = []
-        while not isLast:
-            getChangelog = controllerApi.get_changelogs(key)
-            isLast = getChangelog['isLast']
-            startAt = startAt + getChangelog['total']
-            changelogs = changelogs + getChangelog['values']
+    _search_for_specific_issues(controllerApi, keys)
 
-            pass
-
-
-    pass
+    print("Create an issue")
+    issueKey = _create_issue(controllerApi)
 
 
 if __name__ == "__main__":
