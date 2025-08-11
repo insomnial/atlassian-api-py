@@ -60,26 +60,27 @@ class ApiController():
     # SYSTEM
     #
     ###########################################################################
+    def get_project_details(self, projectIdOrKey):
+        url = f'{self._ROOTURL}/rest/api/3/project/{projectIdOrKey}'
+        response = self.__callApi('GET', url=url)
+        return response.json()
+    
+
     def get_workspace_id(self):
         w_url = f'{self._ROOTURL}/rest/servicedeskapi/assets/workspace'
         response = self.__callApi('GET', w_url)
         return response.json()['values'][0]['workspaceId']
     
-        w_id_json = requests.get(
-            w_url, 
-            headers={'Accept':'application/json','Content-Type':'application/json','Authorization':f'Basic {self._TOKEN}'}
-        )
-        return w_id_json.json()['values'][0]['workspaceId']
-
 
     # set the project for this instance of controllerapi and populate
     # - issue types
     # - request types
-    def set_project(self, projectId = None, projectKey = None):
-        if projectId is not None:
-            self.PROJECT_ID = projectId
-        if projectKey is not None:
-            self.PROJECT_KEY = projectKey
+    def set_project(self, projectIdOrKey = None):
+        projectDetails = self.get_project_details(projectIdOrKey=projectIdOrKey)
+        self.PROJECTID = int(projectDetails['id'])
+        self.PROJECTKEY = projectDetails['key']
+        return True
+        
 
     ###########################################################################
     #
@@ -140,45 +141,31 @@ class ApiController():
     # Jira/JSM
     #
     ###########################################################################
-    def __search_existing_ticket(self, projectId, summary, requestType):
+    def __search_existing_workitem(self, summary, issueType):
         url = f'{self._ROOTURL}/rest/api/3/search'
         query = {
-            'jql': f'project = {projectId} and ' \
-                f'"Status Category[Dropdown]" != "Done" and ' \
-                f'"Request Type" = "{requestType}" and ' \
+            'jql': f'project = {self.PROJECTID} and ' \
+                f'statusCategory != Done and ' \
+                f'"issuetype" = "{issueType}" and ' \
                 f'summary ~ "{summary}"',
             'expand': 'false'
         }
         return self.__callApi(mode='GET', url=url, query=query)
 
 
-    def __create_ticket(self, summary, description, computers, requestType):
+    def __create_workitem(self, issuetype, summary, fields):
         url = f'{self._ROOTURL}/rest/api/3/issue'
-        payload = json.dumps( {
-            "fields": {
-                "summary": summary,
-                "description": description,
-                "issuetype": {
-                    "id": self.configDict[ApiConfig.ISSUE_TYPE_ID]
-                },
-                "customfield_10010": requestType,
-                "labels": [
-                    "jsm-assets"
-                ],
-                "priority": {
-                    "id": "3" # medium
-                },
-                "project": {
-                    "id": self.configDict[ApiConfig.PROJECT_ID]
-                },
-                "customfield_10170": computers
-            }
-        } )
+        # add these previously explicit fields to the payload
+        fields['fields']['summary'] = summary
+        fields['fields']['issuetype'] = { "name" : issuetype }
+        fields['fields']['project'] = { "id" : self.PROJECTID }
+        # convert payload to API
+        payload = json.dumps(fields)
         # check for existing ticket before creating a new one
-        existingResponse = self.__search_existing_ticket(summary=summary, requestType=requestType)
+        existingResponse = self.__search_existing_workitem(summary=summary, issueType=issuetype)
         if (json.loads(existingResponse.text))['total'] > 0:
             # ticket exists
-            # TODO make this work so we only respond with these three keys
+            # we only respond with these three keys
             existingResponseJson = (json.loads(existingResponse.text))['issues'][0]
             temp = {
                 "status_code": 200,
@@ -192,8 +179,15 @@ class ApiController():
 
 
     # create a single ticket in the project already set
-    def create_single_ticket(self, summary, description):
-        return self.__create_ticket(summary, description, self.configDict[ApiConfig.REQUEST_TYPE_VETTING])
+    # Requires the project key or id, issue type, and summary
+    def create_single_workitem(self, issueType, summary, fields = None) -> dict:
+        # check for project 
+        assert self.PROJECTID is not None, "Please set a project by ID or Key before creating work items"
+        # check for issue type
+        assert issueType is not None, "Work items must have an issue type"
+        # check for summary
+        assert summary is not None, "Work items must have a summary"
+        return self.__create_workitem(issueType, summary, fields)
 
 
     # # jsonBlobs : dictionary with two entries, summary & description

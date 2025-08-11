@@ -47,21 +47,38 @@ def _search_for_specific_issues(controllerApi, keys: list) -> None:
             changelogs = changelogs + getChangelog['values']
             pass
 
-    
-def _create_issue(controllerApi) -> str:
-    issue = {
+
+def _create_workitem(controllerApi) -> str:
+    fields = {
         "fields": {
-            "project": {
-                "key": "TEST"
+            "description": {
+                "type": "doc",
+                "version": 1,
+                "content": [
+                    {
+                    "type": "paragraph",
+                    "content": [
+                        {
+                        "type": "text",
+                        "text": "This was created using the atlassian-api-py library."
+                        }
+                    ]
+                    }
+                ]
             },
-            "summary": "Test issue created using atlassian-api-py",
-            "description": "This is a test issue created using the atlassian-api-py library.",
-            "issuetype": {
-                "name": "Task"
-            }
+            "customfield_10010": "itdesk/aecdd25c-64df-4882-b24c-39d9c7c37bd9",
+            "labels": [
+                    "onsite"
+            ],
+            "priority": {
+                "id": "3" # medium
+            },
+
         }
     }
-    newIssue = controllerApi.create_issue(issue)
+    issuetype = "Machine Activity"
+    summary = "LT-D9FG6M3"
+    newIssue = (controllerApi.create_single_workitem(issuetype, summary, fields)).json()
     print(f"New issue created with key: {newIssue['key']}")
     return newIssue['key']
 
@@ -114,14 +131,21 @@ def main(args = None, opts = None) -> None:
     # print(f"Total projects found: {len(allProjectsRequest)}")
     # print()
 
-    print(f"Search using a filter")
-    keys = _search_using_filter(controllerApi)
+    if True:
+        print(f"Set a project")
+        print(f"{controllerApi.set_project('ITDESK')}")
 
-    print("Seach for specific issues")
-    _search_for_specific_issues(controllerApi, keys)
+    if False: 
+        print(f"Search using a filter")
+        keys = _search_using_filter(controllerApi)
 
-    print("Create an issue")
-    issueKey = _create_issue(controllerApi)
+    if False:
+        print("Seach for specific issues")
+        _search_for_specific_issues(controllerApi, keys)
+
+    if True:
+        print("Create an issue")
+        issueKey = _create_workitem(controllerApi)
 
 
 if __name__ == "__main__":
