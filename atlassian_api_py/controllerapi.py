@@ -142,9 +142,15 @@ class ApiController():
 
     # Get projects paginated
     # Returns a paginated list of projects visible to the user.
-    def get_project_search(self, startAt = 0, maxResults = 50):
+    def get_project_search(self, startAt = 0, maxResults = 50, typeKey = None):
         url = f'{self._ROOTURL}/rest/api/3/project/search'
-        response = self.__callApi('GET', url=url)
+        params = {
+            'startAt': startAt,
+            'maxResults': maxResults
+        }
+        if typeKey != None:
+            params['typeKey'] = typeKey
+        response = self.__callApi('GET', url=url, query=params)
         return response.json()
 
 

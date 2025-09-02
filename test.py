@@ -90,7 +90,7 @@ def _search_projects(controllerApi):
     total = 0
     print(f"{'Name':40}  {'Key':12}  {'Privacy':12}")
     while not isLast:
-        projectsJson = controllerApi.get_project_search(startAt)
+        projectsJson = controllerApi.get_project_search(startAt, typeKey = 'business,software')
         total = projectsJson['total']
         isLast = projectsJson['isLast']
         projectList = projectsJson['values']
