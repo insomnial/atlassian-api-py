@@ -60,12 +60,6 @@ class ApiController():
     # SYSTEM
     #
     ###########################################################################
-    def get_project_details(self, projectIdOrKey):
-        url = f'{self._ROOTURL}/rest/api/3/project/{projectIdOrKey}'
-        response = self.__callApi('GET', url=url)
-        return response.json()
-    
-
     def get_workspace_id(self):
         w_url = f'{self._ROOTURL}/rest/servicedeskapi/assets/workspace'
         response = self.__callApi('GET', w_url)
@@ -141,6 +135,27 @@ class ApiController():
     # Jira/JSM
     #
     ###########################################################################
+
+    #
+    # Projects
+    #
+
+    # Get projects paginated
+    # Returns a paginated list of projects visible to the user.
+    def get_project_search(self, startAt = 0, maxResults = 50):
+        url = f'{self._ROOTURL}/rest/api/3/project/search'
+        response = self.__callApi('GET', url=url)
+        return response.json()
+
+
+    # Get project
+    # Returns the project details for a project.
+    def get_project_details(self, projectIdOrKey):
+        url = f'{self._ROOTURL}/rest/api/3/project/{projectIdOrKey}'
+        response = self.__callApi('GET', url=url)
+        return response.json()
+
+
     def __search_existing_workitem(self, summary, issueType):
         url = f'{self._ROOTURL}/rest/api/3/search'
         query = {

@@ -83,6 +83,40 @@ def _create_workitem(controllerApi) -> str:
     return newIssue['key']
 
 
+def _search_projects(controllerApi):
+    # look through results, will be paginated
+    isLast = False
+    startAt = 0
+    total = 0
+    print(f"{'Name':40}  {'Key':12}  {'Privacy':12}")
+    while not isLast:
+        projectsJson = controllerApi.get_project_search(startAt)
+        total = projectsJson['total']
+        isLast = projectsJson['isLast']
+        projectList = projectsJson['values']
+        startAt = startAt + len(projectList)
+        for project in projectList:
+            projectId = project['id']
+            projectKey = project['key']
+            style = project['style']
+            isPrivate = project['isPrivate']
+            name = project['name']
+            projectLeadId = ''
+            projectLeadName = ''
+            # get project details for private projects
+            if not isPrivate:
+                projectDetails = controllerApi.get_project_details(projectKey)
+                pass
+                # get project lead account Id
+                projectLeadId = projectDetails['lead']['accountId']
+                projectLeadName = projectDetails['lead']['displayName']
+        
+            print(f"{name:40}  {projectKey:12}  {isPrivate}  {projectLeadName:24}")
+
+
+        pass
+
+
 def main(args = None, opts = None) -> None:
     print("Welcome to `atlassian-api-py")
 
@@ -131,7 +165,7 @@ def main(args = None, opts = None) -> None:
     # print(f"Total projects found: {len(allProjectsRequest)}")
     # print()
 
-    if True:
+    if False:
         print(f"Set a project")
         print(f"{controllerApi.set_project('ITDESK')}")
 
@@ -143,9 +177,13 @@ def main(args = None, opts = None) -> None:
         print("Seach for specific issues")
         _search_for_specific_issues(controllerApi, keys)
 
-    if True:
+    if False:
         print("Create an issue")
         issueKey = _create_workitem(controllerApi)
+
+    if True:
+        print("Search projects")
+        projectsJson = _search_projects(controllerApi=controllerApi)
 
 
 if __name__ == "__main__":
